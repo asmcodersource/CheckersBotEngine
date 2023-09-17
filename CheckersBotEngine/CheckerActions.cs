@@ -54,7 +54,8 @@ namespace CheckersBotEngine
 
         public override bool VerifyAction(GameField gameField)
         {
-            throw new NotImplementedException();
+            var checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
+            return checkersOnLine.Count == 0;
         }
     }
 
@@ -94,7 +95,16 @@ namespace CheckersBotEngine
 
         public override bool VerifyAction(GameField gameField)
         {
-            throw new NotImplementedException();
+            var checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
+            if( checkersOnLine.Count != 1 )
+                return false;
+            if( gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None )
+                return false;
+            var beatenPos = checkersOnLine.First();
+            var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
+            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
+            CheckerRemovePosition = beatenPos;
+            return beatenChecker.isWhite() != beatingChecker.isWhite();
         }
     }
 }
