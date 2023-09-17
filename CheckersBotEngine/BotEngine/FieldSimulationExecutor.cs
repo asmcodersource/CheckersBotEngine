@@ -11,19 +11,11 @@ namespace CheckersEngine.BotEngine
     public record FieldSimulationResult
     {
         public CheckerAction FirstCheckerAction { get; set; } = null;
-        public int removedWhite { get; set; } = 0;
-        public int removedBlack { get; set; } = 0;
+        public int Score { get; set; }
 
-        public static int CompareResultsForWhite(FieldSimulationResult r1, FieldSimulationResult r2)
+        public static int CompareResults(FieldSimulationResult r1, FieldSimulationResult r2)
         {
-            var result = (r1.removedBlack - r1.removedWhite) - (r2.removedBlack - r2.removedWhite);
-            return result;
-        }
-
-        public static int CompareResultsForBlack(FieldSimulationResult r1, FieldSimulationResult r2)
-        {
-            var result = (r1.removedWhite - r1.removedBlack) - (r2.removedWhite - r2.removedBlack);
-            return result;
+            return r1.Score - r2.Score;
         }
     }
 
@@ -32,29 +24,32 @@ namespace CheckersEngine.BotEngine
         public ActionsExecutor ActionsExecutor { get; set; }
         public List<FieldSimulationResult> Results { get; protected set; }
         public int SimulationSteeps { get; protected set; }
+        private int beginBlackCount = 0;
+        private int beginWhiteCount = 0;
+        private bool isWhitePlayer;
 
-        public FieldSimulationExecutor(GameField gameField, int simulationStepsCount = 100 ) {
+        public FieldSimulationExecutor(GameField gameField, bool isWhitePlayer, int simulationStepsCount = 100 ) {
             ActionsExecutor = new ActionsExecutor(gameField);
             Results  = new List<FieldSimulationResult>();
             SimulationSteeps = simulationStepsCount;
+            beginBlackCount = ActionsExecutor.BlackCheckersCount;
+            beginWhiteCount = ActionsExecutor.WhiteCheckersCount;
+            this.isWhitePlayer = isWhitePlayer;
         }
 
         public void Simulate(GameField gameField, FieldSimulationResult simulationScore, bool isWhiteTurn, int step = 0 ) 
         {
             if (step >= SimulationSteeps)
             {
-                simulationScore.removedWhite = 12 - ActionsExecutor.WhiteCheckersCount;
-                simulationScore.removedBlack = 12 - ActionsExecutor.BlackCheckersCount;
-                Results.Add(simulationScore);
+                StoreResult(simulationScore);
                 return;
             }
-
+            var temp = simulationScore;
             for (int y = 0; y < 8; y++)
             {
                 for (int x = 0; x < 8; x++)
                 {
-                    if ((x + y) % 2 != 0)
-                        continue;
+
                     var position = new FieldPosition(x, y);
                     var checker = gameField.GetCheckerAtPosition(position);
                     if (checker == Checker.None || checker.isWhite() != isWhiteTurn)
@@ -62,9 +57,9 @@ namespace CheckersEngine.BotEngine
                     var actions = ActionsGenerator.GetCheckerActions(position, gameField);
                     if (actions.Count == 0)
                         continue;
-                    var temp = simulationScore;
                     foreach (var action in actions)
                     {
+                        simulationScore = temp;
                         if (simulationScore == null)
                         {   
                             simulationScore = new FieldSimulationResult();
@@ -74,9 +69,19 @@ namespace CheckersEngine.BotEngine
                         Simulate(gameField, simulationScore, !isWhiteTurn, step + 1);
                         ActionsExecutor.CancelLastAction();
                     }
-                    simulationScore = temp;
                 }
             }
+            if( step != 0 )
+                StoreResult(simulationScore);
+        }
+
+        protected void StoreResult(FieldSimulationResult simulationScore)
+        {
+            var removedWhite = beginWhiteCount - ActionsExecutor.WhiteCheckersCount;
+            var removedBlack = beginBlackCount - ActionsExecutor.BlackCheckersCount;
+            simulationScore.Score = isWhitePlayer ? removedBlack - removedWhite : removedWhite - removedBlack;
+            Results.Add(simulationScore);
+            return;
         }
     }
 }

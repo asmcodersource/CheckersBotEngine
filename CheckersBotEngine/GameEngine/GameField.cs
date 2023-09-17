@@ -25,13 +25,13 @@ namespace CheckersEngine.GameEngine
             // Place black chekers
             for (int y = 5; y < 8; y++)
                 for (int x = 0; x < 8; x++)
-                    if ((y + x) % 2 == 0)
+                    if ((y + x) % 2 == 1)
                         CheckersField[y, x] = Checker.White;
 
             // Place While chekers
             for (int y = 0; y < 3; y++)
                 for (int x = 0; x < 8; x++)
-                    if ((y + x) % 2 == 0)
+                    if ((y + x) % 2 == 1)
                         CheckersField[y, x] = Checker.Black;
         }
 

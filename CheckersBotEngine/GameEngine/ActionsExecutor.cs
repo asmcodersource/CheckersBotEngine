@@ -8,8 +8,8 @@ namespace CheckersEngine.GameEngine
 {
     public class ActionsExecutor
     {
-        public int WhiteCheckersCount { get; protected set; } = 12;
-        public int BlackCheckersCount { get; protected set; } = 12;
+        public int WhiteCheckersCount { get; protected set; } = 0;
+        public int BlackCheckersCount { get; protected set; } = 0;
         public GameField GameField { get; protected set; }
         public List<CheckerAction> ActionsHistory { get; protected set; }
 
@@ -18,6 +18,19 @@ namespace CheckersEngine.GameEngine
         {
             GameField = gameField;
             ActionsHistory = new List<CheckerAction>();
+            for (int y = 0; y < 8; y++)
+            {
+                for (int x = 0; x < 8; x++)
+                {
+                    var position = new FieldPosition(x, y);
+                    if (gameField.GetCheckerAtPosition(position) == Checker.None)
+                        continue;
+                    if (gameField.GetCheckerAtPosition(position).isWhite())
+                        WhiteCheckersCount++;
+                    else
+                        BlackCheckersCount++;
+                }
+            }
         }
 
         public void ExecuteAction(CheckerAction action)

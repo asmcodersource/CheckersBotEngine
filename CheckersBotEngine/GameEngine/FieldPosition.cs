@@ -39,7 +39,7 @@ namespace CheckersEngine.GameEngine
             var steps = new List<FieldPosition>();
             for (int y = 0; y < 8; y++)
                 for (int x = 0; x < 8; x++)
-                    if ((y + x) % 2 == 0 && IsStepPossible(y, x))
+                    if ((y + x) % 2 == 1 && IsStepPossible(y, x))
                         steps.Add(new FieldPosition(y, x));
             return steps;
         }
