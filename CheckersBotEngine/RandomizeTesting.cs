@@ -18,7 +18,7 @@ namespace CheckersBotEngine
 
             // Simulate game by random steps
             ActionsExecutor actionsExecutor = new ActionsExecutor(gameField);
-            for( int i = 0; i < 10; i++ )
+            for( int i = 0; i < 500; i++ )
             {
                 var pos = FindChecker(i % 2 == 0);
                 var actions = ActionsGenerator.GetCheckerActions(pos, gameField);
@@ -32,7 +32,7 @@ namespace CheckersBotEngine
                 var actionId =random.Next(0, actions.Count());
                 actionsExecutor.ExecuteAction(actions[actionId]);
                 Console.WriteLine("________________________________________________________");
-                Console.ReadKey();
+                Console.ReadKey(true);
                 Console.WriteLine(GameField);
             }
         }

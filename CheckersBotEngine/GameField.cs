@@ -35,6 +35,11 @@ namespace CheckersBotEngine
                         CheckersField[y, x] = Checker.Black;
         }
 
+        public void InitializeEmptyField()
+        {
+            CheckersField = new Checker[8, 8];
+        }
+
         /// <summary>
         /// Make string representation of game field.
         /// Useful for debugging 
@@ -49,8 +54,8 @@ namespace CheckersBotEngine
                 { Checker.None, "  " },
                 { Checker.White, "WC" },
                 { Checker.Black, "BC" },
-                { Checker.WhiteQueen, "WK" },
-                { Checker.BlackQueen, "BK" },
+                { Checker.WhiteQueen, "WQ" },
+                { Checker.BlackQueen, "BQ" },
             };
 
             StringBuilder builder = new StringBuilder();

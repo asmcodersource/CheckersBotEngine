@@ -3,5 +3,4 @@ using CheckersBotEngine;
 
 GameField gameField = new GameField();
 gameField.InitializeField();
-
 RandomizeTesting.Run(gameField);

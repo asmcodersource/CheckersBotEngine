@@ -12,6 +12,7 @@ namespace CheckersBotEngine
     {
         public FieldPosition FieldStartPosition { get; set; }
         public FieldPosition FieldEndPosition { get; set; }
+        public bool BecameQueen { get; set; } = false;
 
         public CheckerAction(FieldPosition start, FieldPosition end )
         {
@@ -55,6 +56,8 @@ namespace CheckersBotEngine
             var checker = gameField.GetCheckerAtPosition(FieldStartPosition);
             if (FieldPosition.IsDirectionRight(FieldStartPosition, FieldEndPosition, checker) == false)
                 return false;
+            if (FieldEndPosition.IsBecameQueenPosition(checker.isWhite()))
+                BecameQueen = true;
             return true;
         }
     }
@@ -93,6 +96,8 @@ namespace CheckersBotEngine
                 return false;
             if (FieldPosition.IsDirectionRight(FieldStartPosition, FieldEndPosition, beatingChecker) == false)
                 return false;
+            if (FieldEndPosition.IsBecameQueenPosition(beatingChecker.isWhite()))
+                BecameQueen = true;
             return true;
         }
     }

@@ -83,5 +83,14 @@ namespace CheckersBotEngine
                 return false;
             return true;
         }
+
+        public bool IsBecameQueenPosition(bool isWhite)
+        {
+            if (isWhite && this.Y == 0)
+                return true;
+            if ((!isWhite) && this.Y == 7)
+                return true;
+            return false;
+        }
     }
 }

@@ -26,6 +26,11 @@ namespace CheckersBotEngine
             var checker = GameField.GetCheckerAtPosition(action.FieldStartPosition);
             GameField.SetCheckerAtPosition(action.FieldEndPosition, checker);
             GameField.SetCheckerAtPosition(action.FieldStartPosition, Checker.None);
+            if (action.BecameQueen)
+            {
+                var queenType = checker.isWhite() ? Checker.WhiteQueen : Checker.BlackQueen;
+                GameField.SetCheckerAtPosition(action.FieldEndPosition, queenType);
+            }
 
             if (action is CheckerBeatAction)
                 GameField.SetCheckerAtPosition(((CheckerBeatAction)action).CheckerRemovePosition, Checker.None);
@@ -39,6 +44,13 @@ namespace CheckersBotEngine
 
             var action = ActionsHistory.Last();
             var checker = GameField.GetCheckerAtPosition(action.FieldEndPosition);
+
+            if (action.BecameQueen)
+            {
+                var checkerType = checker.isWhite() ? Checker.White : Checker.Black;
+                checker = checkerType;
+            }
+
             GameField.SetCheckerAtPosition(action.FieldStartPosition, checker);
             GameField.SetCheckerAtPosition(action.FieldEndPosition, Checker.None);
 
