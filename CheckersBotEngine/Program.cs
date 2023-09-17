@@ -5,11 +5,11 @@ GameField gameField = new GameField();
 gameField.InitializeField();
 
 var fieldPosition = new FieldPosition(4, 4);
-gameField.SetCheckerAtPosition(fieldPosition, Checker.Black);
+gameField.SetCheckerAtPosition(fieldPosition, Checker.BlackQueen);
 
 Console.WriteLine(gameField);
 
-var control = new FieldPosition(5, 5);
+var control = new FieldPosition(4, 4);
 var steps = control.GetAllPossibleSteps();
 Console.WriteLine("All steps: ");
 foreach (var step in steps)

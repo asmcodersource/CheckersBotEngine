@@ -25,12 +25,24 @@ namespace CheckersBotEngine
         }
     }
 
+    public record CheckerBeatAction: CheckerAction
+    {
+        public FieldPosition CheckerRemovePosition { get; set; }
+        public Checker RemoveCheckerType { get; set; }
+        public CheckerBeatAction(FieldPosition start, FieldPosition end) : base(start, end) { }
+    }
+
+    public record CheckerMoveAction : CheckerAction
+    {
+        public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
+    }
+
     public record WrongAction: CheckerAction
     {
         public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
-    public record MoveChecker : CheckerAction
+    public record MoveChecker : CheckerMoveAction
     {
         public MoveChecker(FieldPosition start, FieldPosition end): base(start, end) { }
 
@@ -48,7 +60,7 @@ namespace CheckersBotEngine
     }
 
 
-    public record MoveQueen : CheckerAction
+    public record MoveQueen : CheckerMoveAction
     {
         public MoveQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
 
@@ -59,10 +71,8 @@ namespace CheckersBotEngine
         }
     }
 
-    public record BeatByChecker : CheckerAction
+    public record BeatByChecker : CheckerBeatAction
     {
-        public FieldPosition CheckerRemovePosition { get; set; }
-
         public BeatByChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
 
         public override bool VerifyAction(GameField gameField)
@@ -75,6 +85,7 @@ namespace CheckersBotEngine
             dy = dy > 0 ? 1 : -1;
             CheckerRemovePosition = new FieldPosition(FieldStartPosition.X + dx, FieldStartPosition.Y + dy);
             var removeChecker = gameField.GetCheckerAtPosition(CheckerRemovePosition);
+            RemoveCheckerType = removeChecker;
             var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
             if (removeChecker.isWhite() == beatingChecker.isWhite() || removeChecker == Checker.None )
                 return false;
@@ -87,10 +98,8 @@ namespace CheckersBotEngine
     }
 
 
-    public record BeatByQueen : CheckerAction
+    public record BeatByQueen : CheckerBeatAction
     {
-        FieldPosition CheckerRemovePosition { get; set; }
-
         public BeatByQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
 
         public override bool VerifyAction(GameField gameField)
@@ -104,6 +113,7 @@ namespace CheckersBotEngine
             var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
             var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
             CheckerRemovePosition = beatenPos;
+            RemoveCheckerType = beatenChecker;
             return beatenChecker.isWhite() != beatingChecker.isWhite();
         }
     }
