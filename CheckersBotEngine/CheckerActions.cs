@@ -1,75 +1,98 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CheckersBotEngine
 {
-    abstract class CheckerAction
+    public record CheckerAction
     {
-        FieldPosition fieldStartPosition;
-        FieldPosition fieldEndPosition;
+        public FieldPosition FieldStartPosition { get; set; }
+        public FieldPosition FieldEndPosition { get; set; }
 
-        public abstract bool VerifyAction();
-    }
+        public CheckerAction(FieldPosition start, FieldPosition end )
+        {
+            FieldStartPosition = start;
+            FieldEndPosition = end;
+        }
 
-    class MoveWhite: CheckerAction
-    {
-        public override bool VerifyAction()
+        public virtual bool VerifyAction( GameField gameField )
         {
             throw new NotImplementedException();
         }
     }
 
-    class MoveBlack : CheckerAction
+    public record WrongAction: CheckerAction
     {
-        public override bool VerifyAction()
+        public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
+    }
+
+    public record MoveChecker : CheckerAction
+    {
+        public MoveChecker(FieldPosition start, FieldPosition end): base(start, end) { }
+
+        public override bool VerifyAction( GameField gameField )
+        {
+            if( FieldStartPosition.IsCloseStep(FieldEndPosition) == false )
+                return false;
+            if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
+                return false;
+            var checker = gameField.GetCheckerAtPosition(FieldStartPosition);
+            if (FieldPosition.IsDirectionRight(FieldStartPosition, FieldEndPosition, checker) == false)
+                return false;
+            return true;
+        }
+    }
+
+
+    public record MoveQueen : CheckerAction
+    {
+        public MoveQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
+
+        public override bool VerifyAction(GameField gameField)
         {
             throw new NotImplementedException();
         }
     }
 
-    class MoveQueen : CheckerAction
+    public record BeatByChecker : CheckerAction
     {
-        
-        public override bool VerifyAction()
+        public FieldPosition CheckerRemovePosition { get; set; }
+
+        public BeatByChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
+
+        public override bool VerifyAction(GameField gameField)
         {
-            throw new NotImplementedException();
+            var dx = FieldEndPosition.X - FieldStartPosition.X;
+            var dy = FieldEndPosition.Y - FieldStartPosition.Y;
+            if( Math.Abs(dy) != 2 && Math.Abs(dx) != 2 )
+                return false;
+            dx = dx > 0 ? 1 : -1;
+            dy = dy > 0 ? 1 : -1;
+            CheckerRemovePosition = new FieldPosition(FieldStartPosition.X + dx, FieldStartPosition.Y + dy);
+            var removeChecker = gameField.GetCheckerAtPosition(CheckerRemovePosition);
+            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
+            if (removeChecker.isWhite() == beatingChecker.isWhite() || removeChecker == Checker.None )
+                return false;
+            if( gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None )
+                return false;
+            if (FieldPosition.IsDirectionRight(FieldStartPosition, FieldEndPosition, beatingChecker) == false)
+                return false;
+            return true;
         }
     }
 
-    class BeatByWhiteChecker : CheckerAction
-    {
-        FieldPosition checkerRemovePosition;
-        public override bool VerifyAction()
-        {
-            throw new NotImplementedException();
-        }
-    }
 
-    class BeatByBlackChecker : CheckerAction
+    public record BeatByQueen : CheckerAction
     {
-        FieldPosition checkerRemovePosition;
-        public override bool VerifyAction()
-        {
-            throw new NotImplementedException();
-        }
-    }
+        FieldPosition CheckerRemovePosition { get; set; }
 
-    class BeatByWhiteQueen : CheckerAction
-    {
-        FieldPosition checkerRemovePosition;
-        public override bool VerifyAction()
-        {
-            throw new NotImplementedException();
-        }
-    }
+        public BeatByQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
 
-    class BeatByBlackQueen : CheckerAction
-    {
-        FieldPosition checkerRemovePosition;
-        public override bool VerifyAction()
+        public override bool VerifyAction(GameField gameField)
         {
             throw new NotImplementedException();
         }

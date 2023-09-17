@@ -3,4 +3,19 @@ using CheckersBotEngine;
 
 GameField gameField = new GameField();
 gameField.InitializeField();
-Console.WriteLine(gameField.ToString());
+
+var fieldPosition = new FieldPosition(4, 4);
+gameField.SetCheckerAtPosition(fieldPosition, Checker.Black);
+
+Console.WriteLine(gameField);
+
+var control = new FieldPosition(5, 5);
+var steps = control.GetAllPossibleSteps();
+Console.WriteLine("All steps: ");
+foreach (var step in steps)
+    Console.WriteLine(step);
+
+var actions = ActionsGenerator.GetCheckerActions(control, gameField);
+Console.WriteLine($"\nAll actions for checker {control}: ");
+foreach (var action in actions)
+    Console.WriteLine($"{action}\n");

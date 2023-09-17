@@ -9,14 +9,6 @@ using System.Threading.Tasks;
 
 namespace CheckersBotEngine
 {
-    public enum Checker {
-        None,
-        White, 
-        Black,
-        WhiteQueen,
-        BlackQueen
-    };
-
     public class GameField
     {
         public Checker[,]? CheckersField { get; protected set; }
@@ -75,10 +67,51 @@ namespace CheckersBotEngine
             return builder.ToString();
         }
 
-        public Checker GetCheckerAtPosition( int x, int y ) {
+        public Checker GetCheckerAtPosition( int x, int y, bool inverted = false ) {
             if (CheckersField is null)
                 throw new NullReferenceException("Game field is null");
+            var fieldPosition = new FieldPosition(x, y);
+            if (fieldPosition.isInsideGameField() is not true)
+                throw new ArgumentOutOfRangeException("Position is outside of game field");
+            y = inverted ? 7 - y : y;
             return CheckersField[y, x];
+        }
+
+        public Checker GetCheckerAtPosition(FieldPosition position, bool inverted = false)
+        {
+            return GetCheckerAtPosition(position.X, position.Y, inverted);
+        }
+
+        public List<FieldPosition> GetCheckersBetweenPositions(FieldPosition pos1, FieldPosition pos2)
+        {
+            var results = new List<FieldPosition>();
+            if (pos1.IsStepPossible(pos2) == false)
+                return results;
+            var dx = pos2.X - pos1.X > 0 ? 1 : -1;
+            var dy = pos2.Y - pos1.Y > 0 ? 1 : -1;
+            var checkPosition = pos1;
+            do
+            {
+                checkPosition = new FieldPosition(checkPosition.X + dx, checkPosition.Y + dy);
+                var checker = GetCheckerAtPosition(checkPosition);
+                if (checker != Checker.None)
+                    results.Add(checkPosition);
+            } while (checkPosition != pos2);
+            return results;
+        }
+
+        public void SetCheckerAtPosition(int x, int y, Checker checker)
+        {
+            SetCheckerAtPosition(new FieldPosition(x, y), checker);
+        }
+
+        public void SetCheckerAtPosition(FieldPosition fieldPosition, Checker checker)
+        {
+            if (CheckersField is null)
+                throw new NullReferenceException("Game field is null");
+            if (fieldPosition.isInsideGameField() is not true)
+                throw new ArgumentOutOfRangeException("Position is outside of game field");
+            CheckersField[fieldPosition.Y, fieldPosition.X] = checker;
         }
     }
 }
