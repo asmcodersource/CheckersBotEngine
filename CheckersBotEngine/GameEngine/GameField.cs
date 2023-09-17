@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CheckersBotEngine
+namespace CheckersEngine.GameEngine
 {
     public class GameField
     {
@@ -44,9 +44,9 @@ namespace CheckersBotEngine
         /// Make string representation of game field.
         /// Useful for debugging 
         /// </summary>
-        public override String ToString()
+        public override string ToString()
         {
-            if( CheckersField is null )
+            if (CheckersField is null)
                 return "Game field is null";
 
             var checkersSymbols = new Dictionary<Checker, string>()
@@ -72,7 +72,8 @@ namespace CheckersBotEngine
             return builder.ToString();
         }
 
-        public Checker GetCheckerAtPosition( int x, int y, bool inverted = false ) {
+        public Checker GetCheckerAtPosition(int x, int y, bool inverted = false)
+        {
             if (CheckersField is null)
                 throw new NullReferenceException("Game field is null");
             var fieldPosition = new FieldPosition(x, y);

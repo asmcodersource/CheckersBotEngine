@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CheckersBotEngine
+namespace CheckersEngine.GameEngine
 {
     public record FieldPosition
     {
@@ -51,7 +51,7 @@ namespace CheckersBotEngine
                 return false;
             if (fieldPosition == this)
                 return false;
-            if (Math.Abs(x - this.X) != Math.Abs(y - this.Y))
+            if (Math.Abs(x - X) != Math.Abs(y - Y))
                 return false;
             return true;
         }
@@ -68,8 +68,8 @@ namespace CheckersBotEngine
 
         public bool IsCloseStep(FieldPosition secondPos)
         {
-            var dx = Math.Abs(secondPos.X - this.X);
-            var dy = Math.Abs(secondPos.Y - this.Y);
+            var dx = Math.Abs(secondPos.X - X);
+            var dy = Math.Abs(secondPos.Y - Y);
             return dx == 1 && dy == 1;
         }
 
@@ -79,16 +79,16 @@ namespace CheckersBotEngine
             var dy = pos2.Y - pos1.Y > 0 ? 1 : -1;
             if (isWhite && dy != -1)
                 return false;
-            else if ((!isWhite) && dy != 1)
+            else if (!isWhite && dy != 1)
                 return false;
             return true;
         }
 
         public bool IsBecameQueenPosition(bool isWhite)
         {
-            if (isWhite && this.Y == 0)
+            if (isWhite && Y == 0)
                 return true;
-            if ((!isWhite) && this.Y == 7)
+            if (!isWhite && Y == 7)
                 return true;
             return false;
         }

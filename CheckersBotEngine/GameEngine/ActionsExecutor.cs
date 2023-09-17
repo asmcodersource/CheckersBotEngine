@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CheckersBotEngine
+namespace CheckersEngine.GameEngine
 {
     public class ActionsExecutor
     {
+        public int WhiteCheckersCount { get; protected set; } = 12;
+        public int BlackCheckersCount { get; protected set; } = 12;
         public GameField GameField { get; protected set; }
         public List<CheckerAction> ActionsHistory { get; protected set; }
 
@@ -16,9 +18,9 @@ namespace CheckersBotEngine
         {
             GameField = gameField;
             ActionsHistory = new List<CheckerAction>();
-        } 
-        
-        public void ExecuteAction( CheckerAction action )
+        }
+
+        public void ExecuteAction(CheckerAction action)
         {
             if (action is WrongAction)
                 return;
@@ -33,7 +35,13 @@ namespace CheckersBotEngine
             }
 
             if (action is CheckerBeatAction)
+            {
                 GameField.SetCheckerAtPosition(((CheckerBeatAction)action).CheckerRemovePosition, Checker.None);
+                if (checker.isWhite())
+                    BlackCheckersCount--;
+                else
+                    WhiteCheckersCount--;
+            }
             ActionsHistory.Add(action);
         }
 
@@ -54,9 +62,14 @@ namespace CheckersBotEngine
             GameField.SetCheckerAtPosition(action.FieldStartPosition, checker);
             GameField.SetCheckerAtPosition(action.FieldEndPosition, Checker.None);
 
-            if (action is CheckerBeatAction) {
+            if (action is CheckerBeatAction)
+            {
                 var beatAction = (CheckerBeatAction)action;
                 GameField.SetCheckerAtPosition(beatAction.CheckerRemovePosition, beatAction.RemoveCheckerType);
+                if (checker.isWhite())
+                    BlackCheckersCount++;
+                else
+                    WhiteCheckersCount++;
             }
             ActionsHistory.RemoveAt(ActionsHistory.Count - 1);
         }

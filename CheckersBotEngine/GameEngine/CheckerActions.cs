@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CheckersBotEngine
+namespace CheckersEngine.GameEngine
 {
     public record CheckerAction
     {
@@ -14,19 +14,19 @@ namespace CheckersBotEngine
         public FieldPosition FieldEndPosition { get; set; }
         public bool BecameQueen { get; set; } = false;
 
-        public CheckerAction(FieldPosition start, FieldPosition end )
+        public CheckerAction(FieldPosition start, FieldPosition end)
         {
             FieldStartPosition = start;
             FieldEndPosition = end;
         }
 
-        public virtual bool VerifyAction( GameField gameField )
+        public virtual bool VerifyAction(GameField gameField)
         {
             throw new NotImplementedException();
         }
     }
 
-    public record CheckerBeatAction: CheckerAction
+    public record CheckerBeatAction : CheckerAction
     {
         public FieldPosition CheckerRemovePosition { get; set; }
         public Checker RemoveCheckerType { get; set; }
@@ -38,18 +38,18 @@ namespace CheckersBotEngine
         public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
-    public record WrongAction: CheckerAction
+    public record WrongAction : CheckerAction
     {
         public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
     public record MoveChecker : CheckerMoveAction
     {
-        public MoveChecker(FieldPosition start, FieldPosition end): base(start, end) { }
+        public MoveChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
 
-        public override bool VerifyAction( GameField gameField )
+        public override bool VerifyAction(GameField gameField)
         {
-            if( FieldStartPosition.IsCloseStep(FieldEndPosition) == false )
+            if (FieldStartPosition.IsCloseStep(FieldEndPosition) == false)
                 return false;
             if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
                 return false;
@@ -82,7 +82,7 @@ namespace CheckersBotEngine
         {
             var dx = FieldEndPosition.X - FieldStartPosition.X;
             var dy = FieldEndPosition.Y - FieldStartPosition.Y;
-            if( Math.Abs(dy) != 2 && Math.Abs(dx) != 2 )
+            if (Math.Abs(dy) != 2 && Math.Abs(dx) != 2)
                 return false;
             dx = dx > 0 ? 1 : -1;
             dy = dy > 0 ? 1 : -1;
@@ -90,11 +90,9 @@ namespace CheckersBotEngine
             var removeChecker = gameField.GetCheckerAtPosition(CheckerRemovePosition);
             RemoveCheckerType = removeChecker;
             var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
-            if (removeChecker.isWhite() == beatingChecker.isWhite() || removeChecker == Checker.None )
+            if (removeChecker.isWhite() == beatingChecker.isWhite() || removeChecker == Checker.None)
                 return false;
-            if( gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None )
-                return false;
-            if (FieldPosition.IsDirectionRight(FieldStartPosition, FieldEndPosition, beatingChecker) == false)
+            if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
                 return false;
             if (FieldEndPosition.IsBecameQueenPosition(beatingChecker.isWhite()))
                 BecameQueen = true;
@@ -110,9 +108,9 @@ namespace CheckersBotEngine
         public override bool VerifyAction(GameField gameField)
         {
             var checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
-            if( checkersOnLine.Count != 1 )
+            if (checkersOnLine.Count != 1)
                 return false;
-            if( gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None )
+            if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
                 return false;
             var beatenPos = checkersOnLine.First();
             var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
