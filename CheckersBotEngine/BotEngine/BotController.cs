@@ -33,18 +33,16 @@ namespace CheckersEngine.BotEngine
         private FieldSimulationResult? GetBestResult(List<FieldSimulationResult> results )
         {
             var array = results.ToArray();
-            Array.Sort(array, FieldSimulationResult.CompareResults );
+            if( IsWhite )
+                Array.Sort(array, FieldSimulationResult.CompareResultsForWhite);
+            else
+                Array.Sort(array, FieldSimulationResult.CompareResultsForBlack);
+
             if (array.Length == 0)
                 return null;
 
             Random random = new Random(Environment.TickCount);
-            if( IsWhite )
-            {
-                return array[(int)(random.Next(array.Length) * RandomPart)];
-            } else
-            {
-                return array[^((int)(random.Next(array.Length) * RandomPart) + 1)];
-            }
+            return array[^(1+(int)(random.Next(array.Length) * RandomPart))];
         }
 
         private int ComputeResultScore(FieldSimulationResult result)

@@ -14,10 +14,16 @@ namespace CheckersEngine.BotEngine
         public int removedWhite { get; set; } = 0;
         public int removedBlack { get; set; } = 0;
 
-        public static int CompareResults(FieldSimulationResult r1, FieldSimulationResult r2)
+        public static int CompareResultsForWhite(FieldSimulationResult r1, FieldSimulationResult r2)
         {
             var result = (r1.removedBlack - r1.removedWhite) - (r2.removedBlack - r2.removedWhite);
-            return result == 0 ? 0 : result > 0 ? 1 : - 1;
+            return result;
+        }
+
+        public static int CompareResultsForBlack(FieldSimulationResult r1, FieldSimulationResult r2)
+        {
+            var result = (r1.removedWhite - r1.removedBlack) - (r2.removedWhite - r2.removedBlack);
+            return result;
         }
     }
 
