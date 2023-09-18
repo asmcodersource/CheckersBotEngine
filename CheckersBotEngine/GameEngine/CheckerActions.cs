@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CheckersEngine.GameEngine
@@ -13,6 +14,12 @@ namespace CheckersEngine.GameEngine
         public FieldPosition FieldStartPosition { get; set; }
         public FieldPosition FieldEndPosition { get; set; }
         public bool BecameQueen { get; set; } = false;
+
+        [JsonConstructor]
+        public CheckerAction()
+        {
+
+        }
 
         public CheckerAction(FieldPosition start, FieldPosition end)
         {
@@ -28,18 +35,34 @@ namespace CheckersEngine.GameEngine
 
     public record CheckerBeatAction : CheckerAction
     {
+
         public FieldPosition CheckerRemovePosition { get; set; }
         public Checker RemoveCheckerType { get; set; }
+        [JsonConstructor]
+        public CheckerBeatAction()
+        {
+
+        }
         public CheckerBeatAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
     public record CheckerMoveAction : CheckerAction
     {
+        [JsonConstructor]
+        public CheckerMoveAction()
+        {
+
+        }
         public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
     public record WrongAction : CheckerAction
     {
+        [JsonConstructor]
+        public WrongAction()
+        {
+
+        }
         public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 

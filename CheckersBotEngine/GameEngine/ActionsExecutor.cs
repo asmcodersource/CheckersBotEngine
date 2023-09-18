@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CheckersEngine.BotCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace CheckersEngine.GameEngine
 {
     public class ActionsExecutor: ICloneable
     {
+        public AbstractScoreStorage ScoreStorage { get; set; }
         public int WhiteCheckersCount { get; protected set; } = 0;
         public int BlackCheckersCount { get; protected set; } = 0;
         public GameField GameField { get; protected set; }
@@ -18,6 +20,15 @@ namespace CheckersEngine.GameEngine
         {
             GameField = gameField;
             ActionsHistory = new List<CheckerAction>();
+            ScoreStorage = new ScoreStorage();
+            RecountCheckersCount();
+        }
+
+        public ActionsExecutor(GameField gameField, AbstractScoreStorage scoreStorage)
+        {
+            GameField = gameField;
+            ActionsHistory = new List<CheckerAction>();
+            ScoreStorage = scoreStorage;
             RecountCheckersCount();
         }
 
@@ -102,6 +113,7 @@ namespace CheckersEngine.GameEngine
             actionsExecutor.BlackCheckersCount = BlackCheckersCount;
             actionsExecutor.WhiteCheckersCount = WhiteCheckersCount;
             actionsExecutor.ActionsHistory = new List<CheckerAction>(ActionsHistory);
+            actionsExecutor.ScoreStorage = ScoreStorage;
             return actionsExecutor;
         }
     }

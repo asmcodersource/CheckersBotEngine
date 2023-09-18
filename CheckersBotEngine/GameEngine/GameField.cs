@@ -59,8 +59,13 @@ namespace CheckersEngine.GameEngine
             };
 
             StringBuilder builder = new StringBuilder();
+            Console.Write("    ");
+            for (int index = 0; index < 8; index++)
+                Console.Write($"#{index} ");
+            Console.WriteLine();
             for (int y = 0; y < 8; y++)
             {
+                builder.Append($"#{y} |");
                 for (int x = 0; x < 8; x++)
                 {
                     builder.Append(checkersSymbols[CheckersField[y, x]]);
@@ -126,6 +131,25 @@ namespace CheckersEngine.GameEngine
             gameField.CheckersField = (Checker[,])CheckersField.Clone();
             return gameField;
         }
+
+
+        public System.Numerics.BigInteger GetGameStateIdentify()
+        {
+            System.Numerics.BigInteger gameStateIdentify = 0;
+            int i = 0;
+            for (int y = 0; y < 8; y++)
+            {
+                for (int x = 0; x < 8; x++)
+                {
+                    if ((x + y) % 2 != 1)
+                        continue;
+                    var checker = GetCheckerAtPosition(x, y);
+                    var value = (int)checker * System.Numerics.BigInteger.Pow(5, i);
+                    gameStateIdentify += value;
+                    i++;
+                }
+            }
+            return gameStateIdentify;
+        }
     }
 }
-

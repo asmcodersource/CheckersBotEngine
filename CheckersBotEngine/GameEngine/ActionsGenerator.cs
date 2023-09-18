@@ -21,7 +21,7 @@ namespace CheckersEngine.GameEngine
             return actions;
         }
 
-        private static CheckerAction GetStepAction(FieldPosition startPos, FieldPosition endPos, GameField gameField)
+        public static CheckerAction GetStepAction(FieldPosition startPos, FieldPosition endPos, GameField gameField)
         {
             CheckerAction action = new WrongAction(startPos, endPos);
             Checker checker = gameField.GetCheckerAtPosition(startPos);
