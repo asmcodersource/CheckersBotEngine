@@ -18,14 +18,22 @@ namespace CheckersEngine.GameEngine
         {
             GameField = gameField;
             ActionsHistory = new List<CheckerAction>();
+            RecountCheckersCount();
+        }
+
+        public void RecountCheckersCount()
+        {
+            if (GameField is null)
+                throw new NullReferenceException("GameField is null");
+
             for (int y = 0; y < 8; y++)
             {
                 for (int x = 0; x < 8; x++)
                 {
                     var position = new FieldPosition(x, y);
-                    if (gameField.GetCheckerAtPosition(position) == Checker.None)
+                    if (GameField.GetCheckerAtPosition(position) == Checker.None)
                         continue;
-                    if (gameField.GetCheckerAtPosition(position).isWhite())
+                    if (GameField.GetCheckerAtPosition(position).isWhite())
                         WhiteCheckersCount++;
                     else
                         BlackCheckersCount++;

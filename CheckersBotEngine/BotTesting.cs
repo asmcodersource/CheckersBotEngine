@@ -24,11 +24,12 @@ namespace CheckersEngine
 
         public int Run()
         {
+            actionsExecutor.RecountCheckersCount();
             bool isWhiteTurn = true;
             int i = 0;
             while ( i < 256 )
             {
-                CheckerAction action = isWhiteTurn ? WhiteBot.GetAction() : BlackBot.GetAction();
+                CheckerAction? action = isWhiteTurn ? WhiteBot.GetAction(actionsExecutor) : BlackBot.GetAction(actionsExecutor);
                 if (action == null)
                     break;
                 actionsExecutor.ExecuteAction(action);

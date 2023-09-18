@@ -21,10 +21,10 @@ namespace CheckersEngine.BotEngine
             this.Complexity = complexity;
         }
 
-        public CheckerAction? GetAction()
+        public CheckerAction? GetAction(ActionsExecutor actionsExecutor)
         {
-            FieldSimulationExecutor simulator = new FieldSimulationExecutor(gameField, IsWhite, Complexity);
-            simulator.Simulate(gameField, null, IsWhite);
+            FieldSimulationExecutor simulator = new FieldSimulationExecutor(actionsExecutor, IsWhite, Complexity);
+            simulator.Simulate(null, IsWhite);
             var results = simulator.Results;
             var bestResult = GetBestResult(results);
             return bestResult == null ? null : bestResult.FirstCheckerAction;

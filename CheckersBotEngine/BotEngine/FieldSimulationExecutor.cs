@@ -21,29 +21,32 @@ namespace CheckersEngine.BotEngine
 
     public class FieldSimulationExecutor
     {
-        public ActionsExecutor ActionsExecutor { get; set; }
+        public ActionsExecutor ActionsExecutor { get; protected set; }
         public List<FieldSimulationResult> Results { get; protected set; }
         public int SimulationSteeps { get; protected set; }
+        protected GameField gameField { get; set; }
         private int beginBlackCount = 0;
         private int beginWhiteCount = 0;
         private bool isWhitePlayer;
 
-        public FieldSimulationExecutor(GameField gameField, bool isWhitePlayer, int simulationStepsCount = 100 ) {
-            ActionsExecutor = new ActionsExecutor(gameField);
-            Results  = new List<FieldSimulationResult>();
-            SimulationSteeps = simulationStepsCount;
+        public FieldSimulationExecutor(ActionsExecutor actionsExecutor, bool isWhitePlayer, int simulationStepsCount = 100 ) {
+            ActionsExecutor = actionsExecutor;
             beginBlackCount = ActionsExecutor.BlackCheckersCount;
             beginWhiteCount = ActionsExecutor.WhiteCheckersCount;
+            Results = new List<FieldSimulationResult>();
+            SimulationSteeps = simulationStepsCount;
             this.isWhitePlayer = isWhitePlayer;
+            gameField = actionsExecutor.GameField;
         }
 
-        public void Simulate(GameField gameField, FieldSimulationResult simulationScore, bool isWhiteTurn, int step = 0 ) 
+        public void Simulate( FieldSimulationResult simulationScore, bool isWhiteTurn, int step = 0 ) 
         {
-            if (step >= SimulationSteeps)
+            if (step == SimulationSteeps)
             {
                 StoreResult(simulationScore);
                 return;
             }
+            bool thereIsNoStep = true;
             var temp = simulationScore;
             for (int y = 0; y < 8; y++)
             {
@@ -65,13 +68,15 @@ namespace CheckersEngine.BotEngine
                             simulationScore = new FieldSimulationResult();
                             simulationScore.FirstCheckerAction = action;
                         }
+                        thereIsNoStep = false;
                         ActionsExecutor.ExecuteAction(action);
-                        Simulate(gameField, simulationScore, !isWhiteTurn, step + 1);
+                        Simulate(simulationScore, !isWhiteTurn, step + 1);
                         ActionsExecutor.CancelLastAction();
                     }
                 }
             }
-            if( step != 0 )
+
+            if( thereIsNoStep && step != 0 )
                 StoreResult(simulationScore);
         }
 
