@@ -11,6 +11,6 @@ while (true)
     gameField.InitializeField();
 
     BotTesting botTesting = new BotTesting(gameField);
-    win += botTesting.Run();
+    win += await botTesting.Run();
     Console.WriteLine(win);
 }

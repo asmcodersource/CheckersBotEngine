@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CheckersEngine.GameEngine
 {
-    public class ActionsExecutor
+    public class ActionsExecutor: ICloneable
     {
         public int WhiteCheckersCount { get; protected set; } = 0;
         public int BlackCheckersCount { get; protected set; } = 0;
@@ -93,6 +93,16 @@ namespace CheckersEngine.GameEngine
                     WhiteCheckersCount++;
             }
             ActionsHistory.RemoveAt(ActionsHistory.Count - 1);
+        }
+
+        public object Clone()
+        {
+            var copiedGameField = (GameField)GameField.Clone();
+            var actionsExecutor = new ActionsExecutor(copiedGameField);
+            actionsExecutor.BlackCheckersCount = BlackCheckersCount;
+            actionsExecutor.WhiteCheckersCount = WhiteCheckersCount;
+            actionsExecutor.ActionsHistory = new List<CheckerAction>(ActionsHistory);
+            return actionsExecutor;
         }
     }
 }

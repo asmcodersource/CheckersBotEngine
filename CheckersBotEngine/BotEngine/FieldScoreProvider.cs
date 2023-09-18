@@ -20,60 +20,64 @@ namespace CheckersEngine.BotEngine
         }
     }
 
-    public class FieldSimulationExecutor
+    public class FieldScoreProvider
     {
         public ActionsExecutor ActionsExecutor { get; protected set; }
         public List<FieldSimulationResult> Results { get; protected set; }
         public int SimulationSteeps { get; protected set; }
-        protected GameField gameField { get; set; }
         private int beginBlackCount = 0;
         private int beginWhiteCount = 0;
         private bool isWhitePlayer;
 
-        public FieldSimulationExecutor(ActionsExecutor actionsExecutor, bool isWhitePlayer, int simulationStepsCount = 100 ) {
+        public FieldScoreProvider(ActionsExecutor actionsExecutor, bool isWhitePlayer, int simulationStepsCount = 100 ) {
             ActionsExecutor = actionsExecutor;
             beginBlackCount = ActionsExecutor.BlackCheckersCount;
             beginWhiteCount = ActionsExecutor.WhiteCheckersCount;
             Results = new List<FieldSimulationResult>();
             SimulationSteeps = simulationStepsCount;
             this.isWhitePlayer = isWhitePlayer;
-            gameField = actionsExecutor.GameField;
         }
 
-        public void GetPositionScore( bool isWhiteTurn, int step = 0 ) 
+        public async Task GetPositionScore( bool isWhiteTurn, int step = 0 ) 
         {
+            List<Task> tasks = new List<Task>();
+
             for( int i = 0; i < 64; i++) {
                 int x = i % 8;
                 int y = i / 8;
                 var position = new FieldPosition(x, y);
+                var gameField = ActionsExecutor.GameField;
                 var checker = gameField.GetCheckerAtPosition(position);
                 if (checker == Checker.None || checker.isWhite() != isWhiteTurn)
                     continue;
                 var actions = ActionsGenerator.GetCheckerActions(position, gameField);
                 if (actions.Count == 0)
                     continue;
-                StartSimulationScore(actions);
+
+                Task longRunningTask = Task.Run(() => StartSimulationScore(actions, (ActionsExecutor)ActionsExecutor.Clone()));
+                tasks.Add(longRunningTask);
             }
+            await Task.WhenAll(tasks);
         }
 
-        protected void StartSimulationScore(List<CheckerAction> actions)
+        protected async Task StartSimulationScore(List<CheckerAction> actions, ActionsExecutor actionsExecutor)
         {
             foreach (var action in actions)
             {
                 var simulationScore = new FieldSimulationResult();
                 simulationScore.FirstCheckerAction = action;
-                ActionsExecutor.ExecuteAction(action);
+                actionsExecutor.ExecuteAction(action);
                 Results.Add(simulationScore);
-                SimulateScoreBody(Results.Count-1, !isWhitePlayer, 1);
-                ActionsExecutor.CancelLastAction();
+                SimulateScoreBody(Results.Count-1, !isWhitePlayer, 1, actionsExecutor);
+                actionsExecutor.CancelLastAction();
             }
         }
 
-        protected void SimulateScoreBody(int scoreIndex, bool isWhiteTurn, int step)
+        protected void SimulateScoreBody(int scoreIndex, bool isWhiteTurn, int step, ActionsExecutor actionsExecutor )
         {
             if (step == SimulationSteeps)
             {
-                StoreResult(scoreIndex);
+                StoreResult(scoreIndex, actionsExecutor);
                 return;
             }
 
@@ -83,6 +87,7 @@ namespace CheckersEngine.BotEngine
                 int x = i % 8;
                 int y = i / 8;
                 var position = new FieldPosition(x, y);
+                var gameField = actionsExecutor.GameField;
                 var checker = gameField.GetCheckerAtPosition(position);
                 if (checker == Checker.None || checker.isWhite() != isWhiteTurn)
                     continue;
@@ -92,20 +97,20 @@ namespace CheckersEngine.BotEngine
                 foreach (var action in actions)
                 {
                     thereIsNoStep = false;
-                    ActionsExecutor.ExecuteAction(action);
-                    SimulateScoreBody(scoreIndex, !isWhiteTurn, step + 1);
-                    ActionsExecutor.CancelLastAction();
+                    actionsExecutor.ExecuteAction(action);
+                    SimulateScoreBody(scoreIndex, !isWhiteTurn, step + 1, actionsExecutor);
+                    actionsExecutor.CancelLastAction();
                 }
             }
 
             if( thereIsNoStep )
-                StoreResult(scoreIndex);
+                StoreResult(scoreIndex, actionsExecutor);
         }
 
-        protected void StoreResult(int scoreIndex)
+        protected void StoreResult(int scoreIndex, ActionsExecutor actionsExecutor)
         {
-            var removedWhite = beginWhiteCount - ActionsExecutor.WhiteCheckersCount;
-            var removedBlack = beginBlackCount - ActionsExecutor.BlackCheckersCount;
+            var removedWhite = beginWhiteCount - actionsExecutor.WhiteCheckersCount;
+            var removedBlack = beginBlackCount - actionsExecutor.BlackCheckersCount;
             var score = isWhitePlayer ? removedBlack - removedWhite : removedWhite - removedBlack;
             Results[scoreIndex].Score += score;
             return;

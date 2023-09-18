@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CheckersEngine.GameEngine
 {
-    public class GameField
+    public class GameField : ICloneable
     {
         public Checker[,]? CheckersField { get; protected set; }
 
@@ -118,6 +118,13 @@ namespace CheckersEngine.GameEngine
             if (fieldPosition.isInsideGameField() is not true)
                 throw new ArgumentOutOfRangeException("Position is outside of game field");
             CheckersField[fieldPosition.Y, fieldPosition.X] = checker;
+        }
+
+        public object Clone()
+        {
+            GameField gameField = new GameField();
+            gameField.CheckersField = (Checker[,])CheckersField.Clone();
+            return gameField;
         }
     }
 }

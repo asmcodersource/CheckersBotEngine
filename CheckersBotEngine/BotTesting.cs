@@ -17,19 +17,19 @@ namespace CheckersEngine
 
         public BotTesting(GameField gameField ) { 
             GameField = gameField;
-            WhiteBot = new BotController(gameField, true, 3);
-            BlackBot = new BotController(gameField, false, 4);
+            WhiteBot = new BotController(gameField, true, 4);
+            BlackBot = new BotController(gameField, false, 5);
             actionsExecutor = new ActionsExecutor(gameField);
         }
 
-        public int Run()
+        public async Task<int> Run()
         {
             actionsExecutor.RecountCheckersCount();
             bool isWhiteTurn = true;
             int i = 0;
             while ( i < 256 )
             {
-                CheckerAction? action = isWhiteTurn ? WhiteBot.GetAction(actionsExecutor) : BlackBot.GetAction(actionsExecutor);
+                CheckerAction? action = isWhiteTurn ? await WhiteBot.GetAction(actionsExecutor) : await BlackBot.GetAction(actionsExecutor);
                 if (action == null)
                     break;
                 actionsExecutor.ExecuteAction(action);
