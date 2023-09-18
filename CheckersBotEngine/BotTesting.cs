@@ -18,7 +18,7 @@ namespace CheckersEngine
         public BotTesting(GameField gameField ) { 
             GameField = gameField;
             WhiteBot = new BotController(gameField, true, 3);
-            BlackBot = new BotController(gameField, false, 1);
+            BlackBot = new BotController(gameField, false, 4);
             actionsExecutor = new ActionsExecutor(gameField);
         }
 

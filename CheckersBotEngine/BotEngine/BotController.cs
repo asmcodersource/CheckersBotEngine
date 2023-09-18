@@ -12,7 +12,7 @@ namespace CheckersEngine.BotEngine
         public GameField gameField { get; protected set; }
         public bool IsWhite { get; protected set; }
         public int Complexity { get; protected set; }
-        public double RandomPart { get; protected set; } = 0.35;
+        public double RandomPart { get; protected set; } = 0.15;
 
         public BotController(GameField gameField, bool isWhite, int complexity = 5)
         {
@@ -24,7 +24,7 @@ namespace CheckersEngine.BotEngine
         public CheckerAction? GetAction(ActionsExecutor actionsExecutor)
         {
             FieldSimulationExecutor simulator = new FieldSimulationExecutor(actionsExecutor, IsWhite, Complexity);
-            simulator.Simulate(null, IsWhite);
+            simulator.GetPositionScore(IsWhite);
             var results = simulator.Results;
             var bestResult = GetBestResult(results);
             return bestResult == null ? null : bestResult.FirstCheckerAction;
