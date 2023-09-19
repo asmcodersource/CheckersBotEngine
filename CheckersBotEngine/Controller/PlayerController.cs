@@ -14,7 +14,7 @@ namespace CheckersEngine.Controller
             IsWhiteController = isWhite;
         }
 
-        public override async Task<CheckerAction?> GetAction(ActionsExecutor actionsExecutor)
+        public override async Task<CheckerAction?> GetAction(Game game, bool mustBeat = false)
         {
             do
             {
@@ -26,7 +26,7 @@ namespace CheckersEngine.Controller
                 int y2 = Convert.ToInt32(Console.ReadLine());
                 FieldPosition p1 = new FieldPosition(x1, y1);
                 FieldPosition p2 = new FieldPosition(x2, y2);
-                CheckerAction? action = ActionsGenerator.GetStepAction(p1, p2, actionsExecutor.GameField);
+                CheckerAction? action = ActionsGenerator.GetStepAction(p1, p2, game.GameField);
                 if (action is not null && action is not WrongAction)
                     return action;
             } while (true);

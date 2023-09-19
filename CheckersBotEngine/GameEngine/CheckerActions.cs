@@ -3,12 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CheckersEngine.GameEngine
 {
+    [Serializable]
+    [DataContract]
+    [JsonDerivedType(typeof(CheckerMoveAction))]
+    [JsonDerivedType(typeof(CheckerBeatAction))]
+    [KnownType(typeof(CheckerBeatAction))]
+    [KnownType(typeof(CheckerMoveAction))]
     public record CheckerAction
     {
         public FieldPosition FieldStartPosition { get; set; }
@@ -44,6 +51,12 @@ namespace CheckersEngine.GameEngine
         public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
+    [Serializable]
+    [DataContract]
+    [JsonDerivedType(typeof(MoveChecker))]
+    [JsonDerivedType(typeof(MoveQueen))]
+    [KnownType(typeof(MoveChecker))]
+    [KnownType(typeof(MoveQueen))]
     public record CheckerMoveAction : CheckerAction
     {
         [JsonConstructor]
@@ -51,6 +64,7 @@ namespace CheckersEngine.GameEngine
         public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
+    [Serializable]
     public record MoveChecker : CheckerMoveAction
     {
         public MoveChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
@@ -71,7 +85,7 @@ namespace CheckersEngine.GameEngine
 
     }
 
-
+    [Serializable]
     public record MoveQueen : CheckerMoveAction
     {
         public MoveQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
@@ -82,7 +96,12 @@ namespace CheckersEngine.GameEngine
             return checkersOnLine.Count == 0;
         }
     }
-
+    [Serializable]
+    [DataContract]
+    [JsonDerivedType(typeof(BeatByChecker))]
+    [JsonDerivedType(typeof(BeatByQueen))]
+    [KnownType(typeof(BeatByChecker))]
+    [KnownType(typeof(BeatByQueen))]
     public record CheckerBeatAction : CheckerAction
     {
 
@@ -105,7 +124,7 @@ namespace CheckersEngine.GameEngine
             return true;
         }
     }
-
+    [Serializable]
     public record BeatByChecker : CheckerBeatAction
     {
         public BeatByChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
@@ -143,11 +162,11 @@ namespace CheckersEngine.GameEngine
 
     }
 
-
+    [Serializable]
     public record BeatByQueen : CheckerBeatAction
     {
         public BeatByQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
-        private List<FieldPosition> checkersOnLine;
+        public List<FieldPosition> checkersOnLine;
 
         public override bool VerifyAction(GameField gameField)
         {

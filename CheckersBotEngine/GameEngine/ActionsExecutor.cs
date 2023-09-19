@@ -35,6 +35,8 @@ namespace CheckersEngine.GameEngine
 
         public void RecountCheckersCount()
         {
+            WhiteCheckersCount = 0;
+            BlackCheckersCount = 0;
             if (GameField is null)
                 throw new NullReferenceException("GameField is null");
 

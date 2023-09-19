@@ -13,9 +13,9 @@ namespace CheckersEngine.BotCore
 
     public record FieldScoreResult
     {
-        [JsonInclude]
         public CheckerAction FirstCheckerAction { get; set; } = null;
-        [JsonInclude]
+        public long WorstWaste { get; set; } = 0;
+        public long BestWin { get; set; } = 0;
         public long Score { get; set; }
 
         public FieldScoreResult()
@@ -25,12 +25,12 @@ namespace CheckersEngine.BotCore
 
         public static int CompareResults(FieldScoreResult r1, FieldScoreResult r2)
         {
-             return (int)Math.Clamp((r2.Score - r1.Score), int.MinValue, int.MaxValue);
+             return -(int)Math.Clamp((r1.Score - r2.Score), int.MinValue, int.MaxValue);
         }
 
         public String SerializeToJson()
         {
-            var jsonString = JsonSerializer.Serialize<FieldScoreResult>(this);
+            var jsonString = JsonSerializer.Serialize(this);
             return jsonString;
         }
 
@@ -39,6 +39,7 @@ namespace CheckersEngine.BotCore
             var options = new JsonSerializerOptions
             {
                 IncludeFields = true,
+                WriteIndented = true,
             };
             object? obj = JsonSerializer.Deserialize<FieldScoreResult>(jsonString, options);
             return (FieldScoreResult)obj;
@@ -47,109 +48,110 @@ namespace CheckersEngine.BotCore
 
     public class FieldScoreProvider
     {
-        public double randomPart = 0.50;
-        public ActionsExecutor ActionsExecutor { get; protected set; }
         public List<FieldScoreResult> Results { get; protected set; }
-        public int SimulationSteeps { get; protected set; }
+        protected int simulationSteeps { get; set; }
+        protected Game game { get; set; }
+
         private int beginBlackCount = 0;
         private int beginWhiteCount = 0;
-        private bool isWhitePlayer;
+        private bool isWhiteControllerTurn;
 
-        public FieldScoreProvider(ActionsExecutor actionsExecutor, bool isWhitePlayer, int simulationStepsCount = 100 ) {
-            ActionsExecutor = actionsExecutor;
-            beginBlackCount = ActionsExecutor.BlackCheckersCount;
-            beginWhiteCount = ActionsExecutor.WhiteCheckersCount;
+        public FieldScoreProvider(Game game, int simulationStepsCount ) {
+            this.game = game;
             Results = new List<FieldScoreResult>();
-            SimulationSteeps = simulationStepsCount;
-            this.isWhitePlayer = isWhitePlayer;
+            simulationSteeps = simulationStepsCount;
+            isWhiteControllerTurn = this.game.IsWhiteTurn;
+            this.game.ActionsExecutor.RecountCheckersCount();
+            beginBlackCount = this.game.ActionsExecutor.BlackCheckersCount;
+            beginWhiteCount = this.game.ActionsExecutor.WhiteCheckersCount;
         }
 
         public async Task GetPositionScore( bool isWhiteTurn, int step = 0 ) 
         {
             List<Task> tasks = new List<Task>();
-
-            for( int i = 0; i < 64; i++) {
+            for( int i = 0; i < 64; i++)
+            {
                 int x = i % 8;
                 int y = i / 8;
-                var position = new FieldPosition(x, y);
-                var gameField = ActionsExecutor.GameField;
-                var checker = gameField.GetCheckerAtPosition(position);
-                if (checker == Checker.None || checker.isWhite() != isWhiteTurn)
+
+                var checkerPosition = new FieldPosition(x, y);
+                var checkerType = game.GameField.GetCheckerAtPosition(x, y);
+                if (checkerType == Checker.None || checkerType.isWhite() != isWhiteTurn)
                     continue;
-                var actions = ActionsGenerator.GetCheckerActions(position, gameField);
-                if (actions.Count == 0)
-                    continue;
-                var gameFieldState = gameField.GetGameStateIdentify();
-                var bestAction = ActionsExecutor.ScoreStorage.GetResult(gameFieldState, isWhiteTurn);
-                if( bestAction != null && Random.Shared.NextDouble() < randomPart )
-                {
-                    Results.Add(bestAction);
-                    return;
-                }
-                Task longRunningTask = Task.Run(() => StartSimulationScore(actions, (ActionsExecutor)ActionsExecutor.Clone()));
-                tasks.Add(longRunningTask);
+
+                //var result = game.ScoreStorage.GetResult(game.GameField.GetGameStateIdentify(), isWhiteTurn);
+                var task = Task.Run(()=>StartSimulationScore(checkerPosition));
+                tasks.Add(task);
             }
+            if (tasks.Count == 0)
+                throw new Exception("Field score provider unknown error");
             await Task.WhenAll(tasks);
         }
 
-        protected async Task StartSimulationScore(List<CheckerAction> actions, ActionsExecutor actionsExecutor)
+        protected async Task StartSimulationScore(FieldPosition position)
         {
-            foreach (var action in actions)
+            var gameCopy = (Game)game.Clone();
+            var fakeController = new FakeController(isWhiteControllerTurn);
+            var actions = ActionsGenerator.GetCheckerActions(position, gameCopy.GameField);
+            foreach(var action in actions)
             {
-                var simulationScore = new FieldScoreResult();
-                simulationScore.FirstCheckerAction = action;
-                var nextTurnIsWhite = isWhitePlayer;
-                if (actionsExecutor.ExecuteAction(action))
-                    nextTurnIsWhite = !isWhitePlayer;
-                Results.Add(simulationScore);
-                SimulateScoreBody(Results.Count-1, nextTurnIsWhite, 1, actionsExecutor);
-                actionsExecutor.CancelLastAction();
+                fakeController.ActionToComplete = action;
+                gameCopy.ChangeController(fakeController, isWhiteControllerTurn);
+                var gameState = await gameCopy.MakeStep();
+                if (gameState != GameState.WaitForNextStep)
+                    continue;
+                var fieldScoreResult = new FieldScoreResult();
+                fieldScoreResult.FirstCheckerAction = action;
+                int resultIndex = 0;
+                lock (Results) {
+                    Results.Add(fieldScoreResult);
+                    resultIndex = Results.Count - 1;
+                }
+                await SimulateScoreBody(gameCopy, resultIndex, 0);
+                gameCopy.ActionsExecutor.CancelLastAction();
             }
         }
 
-        protected void SimulateScoreBody(int scoreIndex, bool isWhiteTurn, int step, ActionsExecutor actionsExecutor )
+        protected async Task SimulateScoreBody(Game game, int resultIndex, int step )
         {
-            if (step == SimulationSteeps)
-            {
-                StoreResult(scoreIndex, actionsExecutor);
+            if (step >= simulationSteeps)
                 return;
-            }
-
-            bool thereIsNoStep = true;
             for (int i = 0; i < 64; i++)
             {
                 int x = i % 8;
                 int y = i / 8;
-                var position = new FieldPosition(x, y);
-                var gameField = actionsExecutor.GameField;
-                var checker = gameField.GetCheckerAtPosition(position);
-                if (checker == Checker.None || checker.isWhite() != isWhiteTurn)
+
+                var checkerPosition = new FieldPosition(x, y);
+                var checkerType = game.GameField.GetCheckerAtPosition(x, y);
+                if (checkerType == Checker.None || checkerType.isWhite() != game.IsWhiteTurn)
                     continue;
-                var actions = ActionsGenerator.GetCheckerActions(position, gameField);
-                if (actions.Count == 0)
-                    continue;
+                var fakeController = new FakeController(game.IsWhiteTurn);
+                var actions = ActionsGenerator.GetCheckerActions(checkerPosition, game.GameField);
                 foreach (var action in actions)
                 {
-                    thereIsNoStep = false;
-                    var nextTurnIsWhite = isWhitePlayer;
-                    if (actionsExecutor.ExecuteAction(action))
-                        nextTurnIsWhite = !isWhitePlayer;
-                    SimulateScoreBody(scoreIndex, nextTurnIsWhite, step + 1, actionsExecutor);
-                    actionsExecutor.CancelLastAction();
+                    fakeController.ActionToComplete = action;
+                    game.ChangeController(fakeController, game.IsWhiteTurn);
+                    var gameState = await game.MakeStep();
+                    if (gameState != GameState.WaitForNextStep)
+                        continue;
+                    var fieldScoreResult = new FieldScoreResult();
+                    fieldScoreResult.FirstCheckerAction = action;
+                    await SimulateScoreBody(game, resultIndex, step + 1);
+                    game.ActionsExecutor.CancelLastAction();
                 }
             }
-
-            if( thereIsNoStep )
-                StoreResult(scoreIndex, actionsExecutor);
+            StoreScore(resultIndex, game, step + 1);
         }
 
-        protected void StoreResult(int scoreIndex, ActionsExecutor actionsExecutor )
+        protected void StoreScore(int resultIndex, Game game, int step )
         {
-            var removedWhite = beginWhiteCount - actionsExecutor.WhiteCheckersCount;
-            var removedBlack = beginBlackCount - actionsExecutor.BlackCheckersCount;
-            var score = isWhitePlayer ? removedBlack - removedWhite : removedWhite - removedBlack;
-            Results[scoreIndex].Score += score;
-            return;
+            var removedWhite = beginWhiteCount - game.ActionsExecutor.WhiteCheckersCount;
+            var removedBlack = beginBlackCount - game.ActionsExecutor.BlackCheckersCount;
+            int waste = isWhiteControllerTurn ? removedWhite : removedBlack;
+            int win = isWhiteControllerTurn ? removedBlack : removedWhite;
+            Results[resultIndex].WorstWaste = Math.Max(waste, Results[resultIndex].WorstWaste);
+            Results[resultIndex].BestWin = Math.Max(win, Results[resultIndex].BestWin);
+            Results[resultIndex].Score = Results[resultIndex].BestWin - Results[resultIndex].WorstWaste;
         }
     }
 }

@@ -8,14 +8,17 @@ using CheckersEngine.GameEngine;
 
 while (true)
 {
-    AbstractController whiteController = new PlayerController(true);
-    AbstractController blackController = new BotController(false);
+    AbstractController whiteController = new BotController(true, 10);
+    AbstractController blackController = new BotController(false, 1);
     Game game = new Game(blackController, whiteController);
     game.InitializeGame();
     GameState state = GameState.WaitForNextStep;
     while (state == GameState.WaitForNextStep)
     {
         Console.WriteLine(game.ActionsExecutor.GameField);
-        await game.MakeStep();
+        state = await game.MakeStep();
     }
+
+    Console.WriteLine($"Game state = {state}");
+    Console.ReadKey(true);
 }

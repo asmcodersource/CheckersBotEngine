@@ -16,12 +16,12 @@ namespace CheckersEngine.Controller
             IsWhiteController = isWhiteController;
         }
 
-        public virtual Task<CheckerAction?> GetAction(ActionsExecutor actionsExecutor)
+        public virtual Task<CheckerAction?> GetAction(Game game, bool mustBeat)
         {
             throw new NotImplementedException();
         }
 
-        public (bool isHaveSteps, bool isHaveBeatSteps) IsControllerHavePossibleStep(GameField gameField)
+        public (bool isHaveSteps, bool isHaveBeatSteps) IsControllerHavePossibleStep(GameField gameField )
         {
             bool isHaveSteps = false;
             for (int i = 0; i < 64; i++)
