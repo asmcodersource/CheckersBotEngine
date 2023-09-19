@@ -10,25 +10,22 @@ namespace CheckersEngine.Controller
 {
     public class BotController : AbstractController
     {
-        public GameField gameField { get; protected set; }
-        public bool IsWhitePlayer { get; protected set; }
         public int Complexity { get; protected set; }
-        public double RandomPart { get; protected set; } = 0.1;
+        public double RandomPart { get; protected set; }
 
-        public BotController(GameField gameField, bool isWhite, int complexity = 5)
+        public BotController( bool isWhite, int complexity = 5, double randomPart = 0.15 ) : base(isWhite)
         {
-            this.gameField = gameField;
-            IsWhitePlayer = isWhite;
             Complexity = complexity;
+            RandomPart = randomPart;
         }
 
         public override async Task<CheckerAction?> GetAction(ActionsExecutor actionsExecutor)
         {
-            FieldScoreProvider simulator = new FieldScoreProvider(actionsExecutor, IsWhitePlayer, Complexity);
-            await simulator.GetPositionScore(IsWhitePlayer);
+            FieldScoreProvider simulator = new FieldScoreProvider(actionsExecutor, IsWhiteController, Complexity);
+            await simulator.GetPositionScore(IsWhiteController);
             var results = simulator.Results;
             var bestResult = GetBestResult(results, actionsExecutor);
-            var gameFieldState = gameField.GetGameStateIdentify();
+            var gameFieldState = actionsExecutor.GameField.GetGameStateIdentify();
             return bestResult == null ? null : bestResult.FirstCheckerAction;
         }
 
@@ -41,9 +38,9 @@ namespace CheckersEngine.Controller
 
             Random random = new Random(Environment.TickCount);
             var bestResult = array[0];
-            var gameFieldState = gameField.GetGameStateIdentify();
+            var gameFieldState = actionsExecutor.GameField.GetGameStateIdentify();
             if (bestResult != null)
-                actionsExecutor.ScoreStorage.StoreResult(gameFieldState, bestResult, IsWhitePlayer, Complexity);
+                actionsExecutor.ScoreStorage.StoreResult(gameFieldState, bestResult, IsWhiteController, Complexity);
             return array[(int)(random.Next(array.Length) * RandomPart)];
         }
     }

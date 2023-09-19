@@ -47,7 +47,7 @@ namespace CheckersEngine.BotCore
 
     public class FieldScoreProvider
     {
-        public double randomPart = 0.25;
+        public double randomPart = 0.50;
         public ActionsExecutor ActionsExecutor { get; protected set; }
         public List<FieldScoreResult> Results { get; protected set; }
         public int SimulationSteeps { get; protected set; }
@@ -98,9 +98,11 @@ namespace CheckersEngine.BotCore
             {
                 var simulationScore = new FieldScoreResult();
                 simulationScore.FirstCheckerAction = action;
-                actionsExecutor.ExecuteAction(action);
+                var nextTurnIsWhite = isWhitePlayer;
+                if (actionsExecutor.ExecuteAction(action))
+                    nextTurnIsWhite = !isWhitePlayer;
                 Results.Add(simulationScore);
-                SimulateScoreBody(Results.Count-1, !isWhitePlayer, 1, actionsExecutor);
+                SimulateScoreBody(Results.Count-1, nextTurnIsWhite, 1, actionsExecutor);
                 actionsExecutor.CancelLastAction();
             }
         }
@@ -129,8 +131,10 @@ namespace CheckersEngine.BotCore
                 foreach (var action in actions)
                 {
                     thereIsNoStep = false;
-                    actionsExecutor.ExecuteAction(action);
-                    SimulateScoreBody(scoreIndex, !isWhiteTurn, step + 1, actionsExecutor);
+                    var nextTurnIsWhite = isWhitePlayer;
+                    if (actionsExecutor.ExecuteAction(action))
+                        nextTurnIsWhite = !isWhitePlayer;
+                    SimulateScoreBody(scoreIndex, nextTurnIsWhite, step + 1, actionsExecutor);
                     actionsExecutor.CancelLastAction();
                 }
             }

@@ -2,21 +2,20 @@
 using CheckersBotEngine;
 using CheckersEngine;
 using CheckersEngine.BotCore;
+using CheckersEngine.Controller;
 using CheckersEngine.GameEngine;
 
-int win = 0;
-int sync = 0;
+
 while (true)
 {
-    GameField gameField = new GameField();
-    gameField.InitializeField();
-
-    BotTesting botTesting = new BotTesting(gameField);
-    await botTesting.Run();
-    sync++;
-    if ( sync == 1)
+    AbstractController whiteController = new PlayerController(true);
+    AbstractController blackController = new BotController(false);
+    Game game = new Game(blackController, whiteController);
+    game.InitializeGame();
+    GameState state = GameState.WaitForNextStep;
+    while (state == GameState.WaitForNextStep)
     {
-        BotTesting.ScoreStorage.LoadFromDatabase();
-        sync = 0;
+        Console.WriteLine(game.ActionsExecutor.GameField);
+        await game.MakeStep();
     }
 }

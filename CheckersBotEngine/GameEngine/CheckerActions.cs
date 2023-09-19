@@ -14,6 +14,7 @@ namespace CheckersEngine.GameEngine
         public FieldPosition FieldStartPosition { get; set; }
         public FieldPosition FieldEndPosition { get; set; }
         public bool BecameQueen { get; set; } = false;
+        public bool SwapController { get; set; } = true;
 
         [JsonConstructor]
         public CheckerAction()
@@ -33,29 +34,6 @@ namespace CheckersEngine.GameEngine
         }
     }
 
-    public record CheckerBeatAction : CheckerAction
-    {
-
-        public FieldPosition CheckerRemovePosition { get; set; }
-        public Checker RemoveCheckerType { get; set; }
-        [JsonConstructor]
-        public CheckerBeatAction()
-        {
-
-        }
-        public CheckerBeatAction(FieldPosition start, FieldPosition end) : base(start, end) { }
-    }
-
-    public record CheckerMoveAction : CheckerAction
-    {
-        [JsonConstructor]
-        public CheckerMoveAction()
-        {
-
-        }
-        public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
-    }
-
     public record WrongAction : CheckerAction
     {
         [JsonConstructor]
@@ -64,6 +42,13 @@ namespace CheckersEngine.GameEngine
 
         }
         public WrongAction(FieldPosition start, FieldPosition end) : base(start, end) { }
+    }
+
+    public record CheckerMoveAction : CheckerAction
+    {
+        [JsonConstructor]
+        public CheckerMoveAction() { }
+        public CheckerMoveAction(FieldPosition start, FieldPosition end) : base(start, end) { }
     }
 
     public record MoveChecker : CheckerMoveAction
@@ -83,6 +68,7 @@ namespace CheckersEngine.GameEngine
                 BecameQueen = true;
             return true;
         }
+
     }
 
 
@@ -97,11 +83,46 @@ namespace CheckersEngine.GameEngine
         }
     }
 
+    public record CheckerBeatAction : CheckerAction
+    {
+
+        public FieldPosition CheckerRemovePosition { get; set; }
+        public Checker RemoveCheckerType { get; set; }
+        [JsonConstructor]
+        public CheckerBeatAction(){ }
+        public CheckerBeatAction(FieldPosition start, FieldPosition end) : base(start, end) { }
+        public virtual bool ShortVerifyAction(GameField gameField)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsControllerShouldBeSwaped(GameField gameField)
+        {
+            var actions = ActionsGenerator.GetCheckerActions(FieldEndPosition, gameField, true);
+            foreach (var action in actions)
+                if (action is CheckerBeatAction)
+                    return false;
+            return true;
+        }
+    }
+
     public record BeatByChecker : CheckerBeatAction
     {
         public BeatByChecker(FieldPosition start, FieldPosition end) : base(start, end) { }
 
         public override bool VerifyAction(GameField gameField)
+        {
+            if( ShortVerifyAction(gameField) == false )
+                return false;
+
+            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
+            if (FieldEndPosition.IsBecameQueenPosition(beatingChecker.isWhite()))
+                BecameQueen = true;
+            SwapController = IsControllerShouldBeSwaped(gameField);
+            return true;
+        }
+
+        public override bool ShortVerifyAction(GameField gameField)
         {
             var dx = FieldEndPosition.X - FieldStartPosition.X;
             var dy = FieldEndPosition.Y - FieldStartPosition.Y;
@@ -117,30 +138,43 @@ namespace CheckersEngine.GameEngine
                 return false;
             if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
                 return false;
-            if (FieldEndPosition.IsBecameQueenPosition(beatingChecker.isWhite()))
-                BecameQueen = true;
             return true;
         }
+
     }
 
 
     public record BeatByQueen : CheckerBeatAction
     {
         public BeatByQueen(FieldPosition start, FieldPosition end) : base(start, end) { }
+        private List<FieldPosition> checkersOnLine;
 
         public override bool VerifyAction(GameField gameField)
         {
-            var checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
+            checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
+            if (ShortVerifyAction(gameField) == false)
+                return false;
+            var beatenPos = checkersOnLine.First();
+            var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
+            CheckerRemovePosition = beatenPos;
+            RemoveCheckerType = beatenChecker;
+            SwapController = IsControllerShouldBeSwaped(gameField);
+            return true;
+        }
+
+        public override bool ShortVerifyAction(GameField gameField)
+        {
+            if( checkersOnLine.Count == 0 ) return false;
+            var beatenPos = checkersOnLine.First();
+            var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
+            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
             if (checkersOnLine.Count != 1)
                 return false;
             if (gameField.GetCheckerAtPosition(FieldEndPosition) != Checker.None)
                 return false;
-            var beatenPos = checkersOnLine.First();
-            var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
-            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
-            CheckerRemovePosition = beatenPos;
-            RemoveCheckerType = beatenChecker;
-            return beatenChecker.isWhite() != beatingChecker.isWhite();
+            if ((beatenChecker.isWhite() != beatingChecker.isWhite()) == false )
+                return false;
+            return true;
         }
     }
 }

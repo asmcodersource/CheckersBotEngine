@@ -1,4 +1,5 @@
 ﻿using CheckersEngine.BotCore;
+using CheckersEngine.Controller;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,10 +53,10 @@ namespace CheckersEngine.GameEngine
             }
         }
 
-        public void ExecuteAction(CheckerAction action)
+        public bool ExecuteAction(CheckerAction action)
         {
             if (action is WrongAction)
-                return;
+                return false;
 
             var checker = GameField.GetCheckerAtPosition(action.FieldStartPosition);
             GameField.SetCheckerAtPosition(action.FieldEndPosition, checker);
@@ -75,6 +76,7 @@ namespace CheckersEngine.GameEngine
                     WhiteCheckersCount--;
             }
             ActionsHistory.Add(action);
+            return action.SwapController;
         }
 
         public void CancelLastAction()

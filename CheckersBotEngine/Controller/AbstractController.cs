@@ -7,8 +7,41 @@ using System.Threading.Tasks;
 
 namespace CheckersEngine.Controller
 {
-    public abstract class AbstractController
+    public class AbstractController
     {
-        public abstract Task<CheckerAction?> GetAction(ActionsExecutor actionsExecutor);
+        public bool IsWhiteController { get; protected set; }
+
+        public AbstractController( bool isWhiteController )
+        {
+            IsWhiteController = isWhiteController;
+        }
+
+        public virtual Task<CheckerAction?> GetAction(ActionsExecutor actionsExecutor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public (bool isHaveSteps, bool isHaveBeatSteps) IsControllerHavePossibleStep(GameField gameField)
+        {
+            bool isHaveSteps = false;
+            for (int i = 0; i < 64; i++)
+            {
+                int x = i % 8;
+                int y = i / 8;
+
+                var position = new FieldPosition(x, y);
+                var checker = gameField.GetCheckerAtPosition(position);
+                if (checker == Checker.None || checker.isWhite() != IsWhiteController)
+                    continue;
+                var actions = ActionsGenerator.GetCheckerActions(position, gameField);
+                if (actions.Count() == 0)
+                    continue;
+                isHaveSteps = true;
+                foreach (CheckerAction action in actions)
+                    if (action is BeatByChecker || action is BeatByQueen)
+                        return (true, true);
+            }
+            return (isHaveSteps, false);
+        }
     }
 }
