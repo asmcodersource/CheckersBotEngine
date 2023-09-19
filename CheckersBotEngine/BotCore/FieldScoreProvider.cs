@@ -114,7 +114,8 @@ namespace CheckersEngine.BotCore
                     resultIndex = Results.Count - 1;
                 }
                 await SimulateScoreBody(gameCopy, resultIndex, 0);
-                gameCopy.ActionsExecutor.CancelLastAction();
+                if (gameCopy.ActionsExecutor.CancelLastAction())
+                    gameCopy.SwapController();
             }
         }
 
