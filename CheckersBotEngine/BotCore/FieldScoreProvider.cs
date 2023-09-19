@@ -14,9 +14,9 @@ namespace CheckersEngine.BotCore
     public record FieldScoreResult
     {
         public CheckerAction FirstCheckerAction { get; set; } = null;
-        public long WorstWaste { get; set; } = 0;
-        public long BestWin { get; set; } = 0;
-        public long Score { get; set; }
+        public double WorstWaste { get; set; } = 0;
+        public double BestWin { get; set; } = 0;
+        public double Score { get; set; }
 
         public FieldScoreResult()
         {
@@ -25,7 +25,13 @@ namespace CheckersEngine.BotCore
 
         public static int CompareResults(FieldScoreResult r1, FieldScoreResult r2)
         {
-             return -(int)Math.Clamp((r1.Score - r2.Score), int.MinValue, int.MaxValue);
+            var result = -Math.Clamp((r1.Score - r2.Score), int.MinValue, int.MaxValue);
+            if (result == 0)
+                return 0;
+            if (result > 0)
+                return 1;
+            else 
+                return -1;
         }
 
         public String SerializeToJson()
@@ -146,10 +152,10 @@ namespace CheckersEngine.BotCore
 
         protected void StoreScore(int resultIndex, Game game, int step )
         {
-            var removedWhite = beginWhiteCount - game.ActionsExecutor.WhiteCheckersCount;
-            var removedBlack = beginBlackCount - game.ActionsExecutor.BlackCheckersCount;
-            int waste = isWhiteControllerTurn ? removedWhite : removedBlack;
-            int win = isWhiteControllerTurn ? removedBlack : removedWhite;
+            var removedWhite = (beginWhiteCount - game.ActionsExecutor.WhiteCheckersCount) / (step + 1.0);
+            var removedBlack = (beginBlackCount - game.ActionsExecutor.BlackCheckersCount) / (step + 1.0);
+            var waste = isWhiteControllerTurn ? removedWhite : removedBlack;
+            var win = isWhiteControllerTurn ? removedBlack : removedWhite;
             Results[resultIndex].WorstWaste = Math.Max(waste, Results[resultIndex].WorstWaste);
             Results[resultIndex].BestWin = Math.Max(win, Results[resultIndex].BestWin);
             Results[resultIndex].Score = Results[resultIndex].BestWin - Results[resultIndex].WorstWaste;

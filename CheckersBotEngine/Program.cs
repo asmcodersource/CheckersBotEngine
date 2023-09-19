@@ -8,8 +8,8 @@ using CheckersEngine.GameEngine;
 
 while (true)
 {
-    AbstractController whiteController = new BotController(true, 4);
-    AbstractController blackController = new BotController(false, 1);
+    AbstractController whiteController = new BotController(true, 1);
+    AbstractController blackController = new BotController(false, 4);
     Game game = new Game(blackController, whiteController);
     game.InitializeGame();
     GameState state = GameState.WaitForNextStep;

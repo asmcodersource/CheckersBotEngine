@@ -117,11 +117,23 @@ namespace CheckersEngine.GameEngine
 
         public bool IsControllerShouldBeSwaped(GameField gameField)
         {
+            var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);
+            var beatChecker = gameField.GetCheckerAtPosition(CheckerRemovePosition);
+            gameField.SetCheckerAtPosition(FieldEndPosition, beatingChecker);
+            gameField.SetCheckerAtPosition(CheckerRemovePosition, Checker.None);
             var actions = ActionsGenerator.GetCheckerActions(FieldEndPosition, gameField, true);
+            bool result = true;
             foreach (var action in actions)
+            {
                 if (action is CheckerBeatAction)
-                    return false;
-            return true;
+                {
+                    result = false;
+                    break;
+                }
+            }
+            gameField.SetCheckerAtPosition(CheckerRemovePosition, beatChecker);
+            gameField.SetCheckerAtPosition(FieldEndPosition, Checker.None);
+            return result;
         }
     }
     [Serializable]
