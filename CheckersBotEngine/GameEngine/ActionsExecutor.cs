@@ -81,7 +81,7 @@ namespace CheckersEngine.GameEngine
             return action.SwapController;
         }
 
-        public void CancelLastAction()
+        public bool CancelLastAction()
         {
             if (ActionsHistory.Count == 0)
                 throw new Exception("Action list is empty");
@@ -108,6 +108,7 @@ namespace CheckersEngine.GameEngine
                     WhiteCheckersCount++;
             }
             ActionsHistory.RemoveAt(ActionsHistory.Count - 1);
+            return action.SwapController;
         }
 
         public object Clone()

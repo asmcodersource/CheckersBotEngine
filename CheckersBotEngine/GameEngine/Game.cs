@@ -83,5 +83,10 @@ namespace CheckersEngine.GameEngine
             game.ScoreStorage = ScoreStorage;
             return game;
         }
+
+        public void SwapController()
+        {
+            IsWhiteTurn = !IsWhiteTurn;
+        }
     }
 }

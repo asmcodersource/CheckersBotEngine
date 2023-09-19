@@ -183,7 +183,9 @@ namespace CheckersEngine.GameEngine
 
         public override bool ShortVerifyAction(GameField gameField)
         {
-            if( checkersOnLine.Count == 0 ) return false;
+            if( checkersOnLine == null )
+                checkersOnLine = gameField.GetCheckersBetweenPositions(FieldStartPosition, FieldEndPosition);
+            if ( checkersOnLine.Count == 0 ) return false;
             var beatenPos = checkersOnLine.First();
             var beatenChecker = gameField.GetCheckerAtPosition(beatenPos);
             var beatingChecker = gameField.GetCheckerAtPosition(FieldStartPosition);

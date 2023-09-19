@@ -137,7 +137,8 @@ namespace CheckersEngine.BotCore
                     var fieldScoreResult = new FieldScoreResult();
                     fieldScoreResult.FirstCheckerAction = action;
                     await SimulateScoreBody(game, resultIndex, step + 1);
-                    game.ActionsExecutor.CancelLastAction();
+                    if (game.ActionsExecutor.CancelLastAction())
+                        game.SwapController();
                 }
             }
             StoreScore(resultIndex, game, step + 1);
